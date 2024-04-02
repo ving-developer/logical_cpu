@@ -1,4 +1,4 @@
-0;i;jmp 8a
+0;i;addi r0, 20
 4;i;ld r1, 8a
 8;i;ld r2, 8e
 c;i;ld r3, 92

@@ -11,7 +11,7 @@ unsigned int imm; //23 bits
 unsigned int mar = 0; //23 bits
 unsigned int pc = 0;
 unsigned char e, l, g; //flags
-unsigned char ir; //5 bits
+unsigned char ir = 99; //5 bits
 unsigned char ro0; //4 bits
 unsigned char ro1; //4 bits
 unsigned char ro2; //4 bits
@@ -140,6 +140,12 @@ void preencherMemoriaSetimoFormato(unsigned int opcode, unsigned int posMem, uns
     guardarValorParaMemoria(posicao, valor);//guarda na memoria a palavra 32 bits
 }
 
+/**
+ *  processa o minemonico de instrucao criando uma palavra de 32 bits para representa-la
+ *  e guarda em 4 posicoes da memoria a palavra de 32 bits
+ *
+ * @param mem posicao da memoria em que a palavra de instrucao deve ser salva
+ */
 void processarInstrucao(int mem){
     unsigned char *ponteiro, instrucao[8];
     unsigned int count = 0,reg0, reg1, imediatoMem;
@@ -164,10 +170,11 @@ void processarInstrucao(int mem){
         count++;
     }
 
-    if(strstr(instrucao, "nop") != NULL) {
+    if(strstr(instrucao, "hlt") != NULL) {
+        preencherMemoriaPrimeiroFormato(0, mem);
+    } if(strstr(instrucao, "nop") != NULL) {
         preencherMemoriaPrimeiroFormato(1, mem);
-    }
-    else if(strcmp(instrucao, "not") == 0) {
+    } else if(strcmp(instrucao, "not") == 0) {
         preencherMemoriaSegundoFormato(2, reg0, mem);
     } else if(strcmp(instrucao, "movr") == 0){
         preencherMemoriaTerceiroFormato(3, reg0, reg1, mem);
@@ -229,6 +236,77 @@ void processarInstrucao(int mem){
 }
 
 /**
+ * limpa a tela do terminal e move cursor para o inicio
+ */
+void limparTela() {
+    printf("\033[2J\033[H");
+}
+
+/**
+ *  Pergunta o usuario se deseja continuar a execucao do programa, caso usuario insira Enter continua a execucao
+ *  caso contrario, interrompe a execucao do programa
+ */
+void solicitaContinuar(){
+    printf("\n\nDigite Enter para continuar (outra tecla para sair)...\n");
+    int c = getchar();
+    limparTela();
+    if (c != '\n') { // Se não for outro Enter, cancela a execução
+        printf("Programa encerrado por interrupção do usuario.\n");
+        exit(0);
+    }
+}
+
+/**
+ * Imprime todos os registradores no terminal
+ */
+void imprimirRegistradores(){
+    printf("                          Registradores                          \n");
+    printf("----------+----------+----------+----------+-------------------+\n");
+    printf(" PC: %x    | MBR: %x   | MAR: %x   | IMM: %x   | IR %x \n", pc, mbr, mar, imm, ir);
+    printf("----------+----------+----------+----------+--------+----------+\n");
+    printf(" E: %x     | L: %x     | G: %x     | RO0: %x   | RO1: %x |  RO2: %x\n", e, l, g, ro0, ro1, ro2);
+    printf("----------+----------+----------+------------------------------+\n");
+    printf(" REG01: %x | REG02: %x | REG03: %x | REG04: %x  \n", reg[0], reg[1], reg[2], reg[3]);
+    printf("----------+----------+----------+------------------------------+\n");
+    printf(" REG05: %x | REG06: %x | REG07: %x | REG08: %x \n", reg[4], reg[5], reg[6], reg[7]);
+    printf("----------+----------+----------+------------------------------+\n");
+    printf(" REG09: %x | REG10: %x | REG11: %x | REG12: %x  \n", reg[8], reg[9], reg[10], reg[11]);
+    printf("----------+----------+----------+------------------------------+\n");
+    printf(" REG13: %x | REG14: %x | REG15: %x | REG16: %x \n", reg[12], reg[13], reg[14], reg[15]);
+    printf("----------+----------+----------+------------------------------+\n");
+}
+
+/**
+ * Imprime todas as posicoes de memoria no terminal
+ */
+void imprimirMemoria(){
+    printf("\n                           Memoria                           ");
+    for(unsigned int i = 0; i < 154; i++) {
+        if (i%11 == 0)//adiciona quebra de linha a cada 11 elementos
+            printf("\n----------+---------+---------+---------+---------+---------+---------+---------+---------+---------+---------+\n|");
+        printf(" %02x = %02x |", i, memoria[i]);
+    };
+}
+
+/**
+ * Imprime no terminal uma logo feita em um arquivo 'ifg-logo.txt'
+ */
+void imprimirLogo() {
+    FILE *arquivo;
+    char linha[90];
+
+    if ((arquivo = fopen("ifg-logo.txt", "r")) != NULL) {
+        while (fgets(linha, 90, arquivo) != NULL) {
+            printf("%s", linha);
+        }
+        printf("\n\n\n");
+        fclose(arquivo);
+    }
+
+    solicitaContinuar();
+}
+
+/**
  * Busca pelo arquivo instrucoes.txt no mesmo diretorio do executavel e processa o arquivo
  * inserindo a instrução na memoria caso seja uma linha de instrução ou guardando o valor na memoria
  * caso seja uma palavra de dado
@@ -262,79 +340,186 @@ void processarArquivo(){
         count = 0;
     }
 
-    if (NULL == arq)
+    if (NULL == arq){
+        fclose(arq);
         printf("Arquivo instrucoes.txt não encontrado.\n");
-    fclose(arq);
-}
-
-/**
- * limpa a tela do terminal e move cursor para o inicio
- */
-void limparTela() {
-    printf("\033[2J\033[H"); // Limpa a tela e move o cursor para o início
-}
-
-/**
- *
- */
-void solicitaContinuar(){
-    printf("\n\nDigite Enter para continuar (outra tecla para sair)...\n");
-    int c = getchar();
-//    limparTela();
-    if (c != '\n') { // Se não for outro Enter, cancela a execução
-        printf("Programa encerrado.\n");
         exit(0);
+    } else {
+        printf("Arquivo instrucoes.txt PROCESSADO!\n");
+        imprimirMemoria();
+        solicitaContinuar();
     }
 }
 
-void imprimirRegistradores(){
-    printf("                          Registradores                          \n");
-    printf("----------+----------+----------+----------+-------------------+\n");
-    printf(" PC: %x    | MBR: %x   | MAR: %x   | IMM: %x   | IR %x \n", pc, mbr, mar, imm, ir);
-    printf("----------+----------+----------+----------+--------+----------+\n");
-    printf(" E: %x     | L: %x     | G: %x     | RO0: %x   | RO1: %x |  RO2: %x\n", e, l, g, ro0, ro1, ro2);
-    printf("----------+----------+----------+------------------------------+\n");
-    printf(" REG01: %x | REG02: %x | REG03: %x | REG04: %x  \n", reg[0], reg[1], reg[2], reg[3]);
-    printf("----------+----------+----------+------------------------------+\n");
-    printf(" REG05: %x | REG06: %x | REG07: %x | REG08: %x \n", reg[4], reg[5], reg[6], reg[7]);
-    printf("----------+----------+----------+------------------------------+\n");
-    printf(" REG09: %x | REG10: %x | REG11: %x | REG12: %x  \n", reg[8], reg[9], reg[10], reg[11]);
-    printf("----------+----------+----------+------------------------------+\n");
-    printf(" REG13: %x | REG14: %x | REG15: %x | REG16: %x \n", reg[12], reg[13], reg[14], reg[15]);
-    printf("----------+----------+----------+------------------------------+\n");
-}
+void ciclo() {
+    mar = pc;
+    mbr = memoria[mar++] << 8;
+    mbr = (mbr | memoria[mar++]) << 8;
+    mbr = (mbr | memoria[mar++]) << 8;
+    mbr = mbr | memoria[mar++];
+    //opcode com os 5 bits mais significativos
+    ir = (mbr >> 27);
 
-void imprimirMemoria(){
-    printf("\n                           Memoria                           ");
-    for(unsigned int i = 0; i < 154; i++) {
-        if (i%11 == 0)//adiciona quebra de linha a cada 11 elementos
-            printf("\n----------+---------+---------+---------+---------+---------+---------+---------+---------+---------+---------+\n|");
-        printf(" %02x = %02x |", i, memoria[i]);
-    };
-}
-
-/**
- * Imprime no terminal uma logo feita em um arquivo 'ifg-logo.txt'
- */
-void imprimirLogo() {
-    FILE *arquivo;
-    char linha[90];
-
-    if ((arquivo = fopen("ifg-logo.txt", "r")) != NULL) {
-        while (fgets(linha, 90, arquivo) != NULL) {
-            printf("%s", linha);
+    if (ir == 0 || ir == 1) {
+        if (ir == 0) { // hlt
+            printf("Programa chegou ao fim (hlt).\n\n\n\n");
+            exit(0);
+            //CPU n�o faz nada, hlt, finalizar programa
+        } else if (ir == 1){  //nop
+            //apenas incrementar o PC
+            pc += 4;
         }
-        printf("\n\n\n");
-        fclose(arquivo);
+    } else if (ir >= 2 && ir <= 4){
+        ro0 = ((mbr & 0x07800000) >> 23);
+        ro1 = (mbr &  0x00780000) >> 19;
+        if (ir == 2) { //not
+            ro0 = ((mbr & 0x07800000) >> 23);
+            reg[ro0] = !reg[ro0];
+            pc += 4;
+        } else if (ir == 3) { //movr
+            reg[ro0] = reg[ro1];
+            pc += 4;
+        } else if (ir == 4) { //cmp
+            if (reg[ro0] == reg[ro1]){
+                e = 0x01;
+                pc += 4;
+            } else {
+                e = 0x00;
+                pc += 4;
+            }
+            if (reg[ro0] < reg[ro1]){
+                l = 0x01;
+                pc += 4;
+            } else {
+                l = 0x00;
+                pc += 4;
+            }
+            if (reg[ro0] > reg[ro1]){
+                g = 0x01;
+                pc += 4;
+            } else {
+                g = 0x00;
+                pc += 4;
+            }
+        }
     }
 
-    solicitaContinuar();
+    //operacoes logicas e aritmeticas
+    else if ( ir >= 7 & ir <= 13) {
+        ro0 = (mbr &  0x07800000) >> 23;
+        ro1 = (mbr &  0x00780000) >> 19;
+        ro2 = (mbr &  0x00078000) >> 15;
+        if (ir == 7){ //add
+            reg[ro0] = reg[ro1] + reg[ro2];
+            pc+=4;
+        }
+        else if (ir == 8){ //sub
+            reg[ro0] = reg[ro1] - reg[ro2];
+            pc+=4;
+        }
+        else if (ir == 9){ //mul
+            reg[ro0] = reg[ro1] * reg[ro2];
+            pc+=4;
+        }
+        else if (ir == 10){ //div
+            reg[ro0] = reg[ro1] / reg[ro2];
+            pc+=4;
+        }
+        else if (ir == 11){ //and
+            reg[ro0] = reg[ro1] & reg[ro2];
+            pc+=4;
+        }
+        else if (ir == 12){ //or
+            reg[ro0] = reg[ro1] | reg[ro2];
+            pc+=4;
+        }
+        else if (ir == 13){ //xor
+            reg[ro0] = reg[ro1] ^ reg[ro2];
+            pc+=4;
+        }
+    }
+
+    else if (ir == 14 || ir == 15) {
+        ro0 = (mbr &  0x07800000) >> 23;
+        //ro1 = (mbr &  0x780000) >> 19;
+        mar = (mbr & 0x007fffff);
+        if (ir == 14) { //ld
+            mbr = memoria[mar++];
+            mbr = (mbr << 8) | memoria[mar++];
+            mbr = (mbr << 8) | memoria[mar++];
+            mbr = (mbr << 8) | memoria[mar++];
+            reg[ro0] = mbr;
+            pc += 4;
+        } else if (ir == 15) { //st
+            mbr = reg[ro0];
+            memoria[mar++] = (mbr >> 24);
+            memoria[mar++] = (mbr >> 16);
+            memoria[mar++] = (mbr >> 8);
+            memoria[mar++] = mbr;
+            pc += 4;
+        }
+    }
+    else if (ir >= 18 && ir <= 23) {
+        ro0 = (mbr &  0x07800000) >> 23;
+        imm = (mbr & 0x007fffff);
+        if (ir == 18) { //addi
+            reg[ro0] = (reg[ro0] + imm);
+            pc += 4;
+        } else if (ir == 19) { //subi
+            reg[ro0] = (reg[ro0] - imm);
+            pc += 4;
+        } else if (ir == 20) { //muli
+            reg[ro0] = (reg[ro0] * imm);
+            pc += 4;
+        } else if (ir == 21) { //divi
+            reg[ro0] = (reg[ro0] / imm);
+            pc += 4;
+        } else if (ir == 22) { //lsh
+            reg[ro0] = (reg[ro0] << imm);
+            pc += 4;
+        } else if (ir == 23) { //rsh
+            reg[ro0] = (reg[ro0] >> imm);
+            pc += 4;
+        }
+    }
+    else if (ir >= 24 && ir <= 30){
+        mar = (mbr & 0x007fffff);
+
+        if (ir == 24) { //je
+            if (e == 0x01) {
+                pc = mar;
+            }
+        } else if (ir == 25) { //jne
+            if (e == 0x00) {
+                pc = mar;
+            }
+        } else if (ir == 26) { //jl
+            if (l == 0x01) {
+                pc = mar;
+            }
+        } else if (ir == 27) { //jle
+            if (e == 0x01 || l == 0x01) {
+                pc = mar;
+            }
+        } else if (ir == 28) { //jg
+            if (g == 0x01) {
+                pc = mar;
+            }
+        } else if (ir == 29) { //jge
+            if (e == 0x01 || g == 0x01) {
+                pc = mar;
+            }
+        } else if (ir == 30) { //jmp
+            pc = mar;
+        }
+    }
 }
 
 int main(){
     imprimirLogo();
+    processarArquivo();
     while(1){
-        processarArquivo();
+        ciclo();
         imprimirRegistradores();
         imprimirMemoria();
         solicitaContinuar();

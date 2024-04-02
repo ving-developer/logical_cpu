@@ -1,4 +1,4 @@
-0;i;ld r0, 86
+0;i;jmp 8a
 4;i;ld r1, 8a
 8;i;ld r2, 8e
 c;i;ld r3, 92

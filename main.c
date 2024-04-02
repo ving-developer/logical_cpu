@@ -35,9 +35,114 @@ void guardarValorParaMemoria(unsigned int posInicial, unsigned int valor){
     memoria[posInicial]   = (valor & 0x000000ff);
 }
 
+/**
+ * Preenche a memoria com o padrão de mensagem que adiciona o opcode da instrucao nos primeiros 5 bits e completa com zero os demais
+ *
+ * @param opcode inteiro sem sinal representando os bits do opcode da instrucao
+ * @param posicao posicao da memoria que deve ser salvo a palavra na memoria
+ */
+void preencherMemoriaPrimeiroFormato(unsigned int opcode, unsigned int posicao){
+    opcode = opcode << 27;//desloca o opcode para os 5 bits mais siginificativos que representam o opcode
+    guardarValorParaMemoria(posicao, opcode);//guarda na memoria a palavra 32 bits
+}
+
+/**
+ * preenche a memoria com o padrao de mensagem que adiciona o opcode da instrucao nos primeiros 5 bits e um registrador nos proximos 4 bits
+ * completando com 0 a esquerda o restante
+ *
+ * @param opcode inteiro sem sinal representando os bits do opcode da instrucao
+ * @param rX registrador X para ser utilizado na instrucao
+ * @param posicao posicao da memoria que deve ser salvo a palavra na memoria
+ */
+void preencherMemoriaSegundoFormato(unsigned int opcode, unsigned int rX, unsigned int posicao){
+    unsigned int valor = opcode << 27;//desloca o opcode para os 5 bits mais siginificativos que representam o opcode
+    valor = (rX << 23) | valor;//desloca o valor de rX para os 9 bits mais significativos que representarão na variavel valor os 5 bits do opcode + 4 bits do rX
+    guardarValorParaMemoria(posicao, valor);//guarda na memoria a palavra 32 bits
+}
+
+/**
+ * preenche a memoria com o padrao de mensagem que adiciona o opcode da instrucao nos primeiros 5 bits, um registrador nos proximos 4 bits
+ * e outro registrador nos proximos 4 bits
+ *
+ * @param opcode inteiro sem sinal representando os bits do opcode da instrucao
+ * @param rX registrador X para ser anexado na palavra
+ * @param rY registrador Y para ser anexado na palavra
+ * @param posicao posicao da memoria que deve ser salvo a palavra na memoria
+ */
+void preencherMemoriaTerceiroFormato(unsigned int opcode, unsigned int rX, unsigned int rY, unsigned int posicao){
+    unsigned int valor = opcode << 27;//desloca o opcode para os 5 bits mais siginificativos que representam o opcode
+    valor = (rX << 23) | valor;//desloca o valor de rX para os 9 bits mais significativos que representarão na variavel valor os 5 bits do opcode + 4 bits do rX
+    valor = (rY << 19) | valor;//desloca o valor de rY para os 13 bits mais significativos que representarão na variavel valor os 5 bits do opcode + 4 bits do rX + 4 bits do rY
+    guardarValorParaMemoria(posicao, valor);//guarda na memoria a palavra 32 bits
+}
+
+/**
+ * preenche a memoria com o padrao de mensagem que adiciona o opcode da instrucao nos primeiros 5 bits, primeiro registrador nos proximos 4 bits,
+ * segundo registrador nos proximos 4 bits e uma posicao da memoria nos proximos 19 bits
+ *
+ * @param opcode inteiro sem sinal representando os bits do opcode da instrucao
+ * @param rX registrador X para ser anexado na palavra
+ * @param rY registrador Y para ser anexado na palavra
+ * @param posMem posicao da memoria para ser anexado na palavra
+ * @param posicao posicao da memoria que deve ser salvo a palavra na memoria
+ */
+void preencherMemoriaQuartoFormato(unsigned int opcode, unsigned int rX, unsigned int rY, unsigned int posMem, unsigned int posicao){
+    unsigned int valor = opcode << 27;//desloca o opcode para os 5 bits mais siginificativos que representam o opcode
+    valor = (rX << 23) | valor;//desloca o valor de rX para os 9 bits mais significativos que representarão na variavel valor os 5 bits do opcode + 4 bits do rX
+    valor = (rY << 19) | valor;//desloca o valor de rY para os 13 bits mais significativos que representarão na variavel valor os 5 bits do opcode + 4 bits do rX + 4 bits do rY
+    valor = posMem | valor;//desloca o valor de rY para os 13 bits mais significativos que representarão na variavel valor os 5 bits do opcode + 4 bits do rX e deixa os outros 14 bits para representar a posição da memoria na palavra
+    guardarValorParaMemoria(posicao, valor);//guarda na memoria a palavra 32 bits
+}
+
+/**
+ * preenche a memoria com o padrao de mensagem que adiciona o opcode da instrucao nos primeiros 5 bits, primeiro registrador nos proximos 4 bits,
+ * segundo registrador nos proximos 4 bits e terceiro registrador nos proximos 4 bits, completando o restante com zeros
+ * @param opcode inteiro sem sinal representando os bits do opcode da instrucao
+ * @param rX registrador X para ser anexado na palavra
+ * @param rY registrador Y para ser anexado na palavra
+ * @param rZ registrador Z para ser anexado na palavra
+ * @param posicao posicao da memoria que deve ser salvo a palavra na memoria
+ */
+void preencherMemoriaQuintoFormato(unsigned int opcode, unsigned int rX, unsigned int rY,  unsigned int rZ, unsigned int posicao){
+    unsigned int valor = opcode << 27;//desloca o opcode para os 5 bits mais siginificativos que representam o opcode
+    valor = (rX << 23) | valor;//desloca o valor de rX para os 9 bits mais significativos que representarão na variavel valor os 5 bits do opcode + 4 bits do rX
+    valor = (rY << 19) | valor;//desloca o valor de rY para os 13 bits mais significativos que representarão na variavel valor os 5 bits do opcode + 4 bits do rX + 4 bits do rY
+    valor = (rZ << 15) | valor;//desloca o valor de rY para os 17 bits mais significativos que representarão na variavel valor os 5 bits do opcode + 4 bits do rX + 4 bits do rX + 4 bits do rY + 4 bits rZ
+    guardarValorParaMemoria(posicao, valor);//guarda na memoria a palavra 32 bits
+}
+
+/**
+ * preenche a memoria com o padrao de mensagem que adiciona o opcode da instrucao nos primeiros 5 bits, primeiro registrador nos proximos 4 bits,
+ * e a posicao de memoria nos ultimos 23 bits
+ * @param opcode inteiro sem sinal representando os bits do opcode da instrucao
+ * @param rX registrador X para ser anexado na palavra
+ * @param posMem posicao da memoria para ser anexado na palavra
+ * @param posicao posicao da memoria que deve ser salvo a palavra na memoria
+ */
+void preencherMemoriaSextoFormato(unsigned int opcode, unsigned int rX, unsigned int posMem, unsigned int posicao){
+    unsigned int valor = opcode << 27;//desloca o opcode para os 5 bits mais siginificativos que representam o opcode
+    valor = (rX << 23) | valor;//desloca o valor de rX para os 9 bits mais significativos que representarão na variavel valor os 5 bits do opcode + 4 bits do rX
+    valor = posMem | valor;//desloca o valor de rX para os 9 bits mais significativos que representarão na variavel valor os 5 bits do opcode + 4 bits do rX e deixa os outros 23 bits para registrar a posição da memoria na palavra
+    guardarValorParaMemoria(posicao, valor);//guarda na memoria a palavra 32 bits
+}
+
+/**
+ * preenche a memoria com o padrao de mensagem que adiciona o opcode da instrucao nos primeiros 5 bits, preenche 4 bits com zero
+ * e guarda a posicao de memoria nos ultimos 23 bits
+ * @param opcode inteiro sem sinal representando os bits do opcode da instrucao
+ * @param posMem posicao da memoria para ser anexado na palavra
+ * @param posicao posicao da memoria que deve ser salvo a palavra na memoria
+ */
+void preencherMemoriaSetimoFormato(unsigned int opcode, unsigned int posMem, unsigned int posicao){
+    unsigned int valor = opcode << 27;//desloca o opcode para os 5 bits mais siginificativos que representam o opcode
+    valor = (0 << 23) | valor;//desloca 23 bits a direita preenchendo com 0 os 4 bits subsequentes
+    valor = posMem | valor;//desloca o valor de rX para os 9 bits mais significativos que representarão na variavel valor os 5 bits do opcode + 4 bits do rX e deixa os outros 23 bits para registrar a posição da memoria na palavra
+    guardarValorParaMemoria(posicao, valor);//guarda na memoria a palavra 32 bits
+}
+
 void colocarInstru(int mem){
-    unsigned char *ponteiro, rg0, mine[8]; // aux recebe rg0
-    unsigned int count = 0, imediatoMem, palavra;
+    unsigned char *ponteiro, reg0, mine[8]; // aux recebe reg0
+    unsigned int count = 0, reg1, imediatoMem;
 
     ponteiro = strtok(pt," ,");//divide a palavra de instrucao em pedacos divididos por , ou espaco
     while(ponteiro){
@@ -45,152 +150,78 @@ void colocarInstru(int mem){
             strcpy(mine,ponteiro);
         }
         if (count== 1){
-            rg0 = (int)strtol(ponteiro,NULL,16);
+            reg0 = (int)strtol(ponteiro, NULL, 16);
         }
         if(count == 2){
+            reg1 = (int)strtol(ponteiro,NULL,16);
+        }
+        if(count == 3){
             imediatoMem = (int)strtol(ponteiro,NULL,16);
         }
         ponteiro = strtok(NULL," ,r");
         count++;
     }
-    if(strcmp(mine,"nop")== 0) {
-        palavra = 1;//adiciona para a palavra o opcode do comando nop (1)
-        palavra = palavra << 24;//desloca o opcode para os 8 bits mais significativos deixando o resto com 0
-        guardarValorParaMemoria(mem, palavra);//guarda na memoria a palavra 32 bits
+    if(strstr(mine,"nop") != NULL) {
+        preencherMemoriaPrimeiroFormato(1, mem);
+    }
+    else if(strcmp(mine,"not") == 0) {
+        preencherMemoriaSegundoFormato(2, reg0, mem);
+    } else if(strcmp(mine,"movr")== 0){
+        preencherMemoriaTerceiroFormato(3, reg0, reg1, mem);
+    } else if(strcmp(mine,"cmp")== 0){
+        preencherMemoriaTerceiroFormato(4, reg0, reg1, mem);
+    } else if(strcmp(mine,"ldbo")== 0){
+        preencherMemoriaQuartoFormato(5, reg0, reg1, imediatoMem, mem);
+    } else if(strcmp(mine,"stbo")== 0){
+        preencherMemoriaQuartoFormato(6, reg0, reg1, imediatoMem, mem);
     } else if(strcmp(mine,"add")== 0){
-        palavra = 2;
-        palavra = (palavra << 3) |rg0;
-        palavra = (palavra << 3) | imediatoMem;
-        palavra =  palavra << 18;
-        guardarValorParaMemoria(mem,palavra);
-    } else if(strcmp(mine,"sub")== 0) {
-        palavra = 3;
-        palavra = (palavra << 3) | rg0;
-        palavra = (palavra << 3) | imediatoMem;
-        palavra = palavra << 18;
-        guardarValorParaMemoria(mem, palavra);
-    } else if(strcmp(mine,"mul")== 0) {
-        palavra = 4;
-        palavra = (palavra << 3) | rg0;
-        palavra = (palavra << 3) | imediatoMem;
-        palavra = palavra << 18;
-        guardarValorParaMemoria(mem, palavra);
-    } else if(strcmp(mine,"div")== 0) {
-        palavra = 5;
-        palavra = (palavra << 3) | rg0;
-        palavra = (palavra << 3) | imediatoMem;
-        palavra = palavra << 18;
-        guardarValorParaMemoria(mem, palavra);
-    } else if(strcmp(mine,"cmp")== 0) {
-        palavra = 6;
-        palavra = (palavra << 3) | rg0;
-        palavra = (palavra << 3) | imediatoMem;
-        palavra = palavra << 18;
-        guardarValorParaMemoria(mem, palavra);
-    } else if(strcmp(mine,"movr")== 0) {
-        palavra = 7;
-        palavra = (palavra << 3) | rg0;
-        palavra = (palavra << 3) | imediatoMem;
-        palavra = palavra << 18;
-        guardarValorParaMemoria(mem, palavra);
-    } else if(strcmp(mine,"and")== 0) {
-        palavra = 8;
-        palavra = (palavra << 3) | rg0;
-        palavra = (palavra << 3) | imediatoMem;
-        palavra = palavra << 18;
-        guardarValorParaMemoria(mem, palavra);
-    } else if(strcmp(mine,"or")== 0) {
-        palavra = 9;
-        palavra = (palavra << 3) | rg0;
-        palavra = (palavra << 3) | imediatoMem;
-        palavra = palavra << 18;
-        guardarValorParaMemoria(mem, palavra);
-    } else if(strcmp(mine,"xor")== 0) {
-        palavra = 10;
-        palavra = (palavra << 3) | rg0;
-        palavra = (palavra << 3) | imediatoMem;
-        palavra = palavra << 18;
-        guardarValorParaMemoria(mem, palavra);
-    } else if(strcmp(mine,"not")== 0) {
-        palavra = 11;
-        palavra = ((palavra << 3)|rg0)<<21;
-        guardarValorParaMemoria(mem, palavra);
-    } else if(strcmp(mine,"je")== 0) {
-        palavra = 12;
-        palavra = (palavra << 24)| imediatoMem;
-        guardarValorParaMemoria(mem, palavra);
-    } else if(strcmp(mine,"jne")== 0) {
-        palavra = 13;
-        palavra = (palavra << 24)| imediatoMem;
-        guardarValorParaMemoria(mem, palavra);
-    } else if(strcmp(mine,"jl")== 0) {
-        palavra = 14;
-        palavra = (palavra << 24)| imediatoMem;
-        guardarValorParaMemoria(mem, palavra);
-    } else if(strcmp(mine,"jle")== 0) {
-        palavra = 15;
-        palavra = (palavra << 24)| imediatoMem;
-        guardarValorParaMemoria(mem, palavra);
-    } else if(strcmp(mine,"jg")== 0) {
-        palavra = 16;
-        palavra = (palavra << 24)| imediatoMem;
-        guardarValorParaMemoria(mem, palavra);
-    } else if(strcmp(mine,"jge")== 0) {
-        palavra = 17;
-        palavra = (palavra << 24)| imediatoMem;
-        guardarValorParaMemoria(mem, palavra);
-    } else if(strcmp(mine,"jmp")== 0) {
-        palavra = 18;
-        palavra = (palavra << 24)| imediatoMem;
-        guardarValorParaMemoria(mem, palavra);
+        preencherMemoriaQuintoFormato(7, reg0, reg1, imediatoMem, mem);
+    } else if(strcmp(mine,"sub")== 0){
+        preencherMemoriaQuintoFormato(8, reg0, reg1, imediatoMem, mem);
+    } else if(strcmp(mine,"mul")== 0){
+        preencherMemoriaQuintoFormato(9, reg0, reg1, imediatoMem, mem);
+    } else if(strcmp(mine,"div")== 0){
+        preencherMemoriaQuintoFormato(10, reg0, reg1, imediatoMem, mem);
+    } else if(strcmp(mine,"and")== 0){
+        preencherMemoriaQuintoFormato(11, reg0, reg1, imediatoMem, mem);
+    } else if(strcmp(mine,"or")== 0){
+        preencherMemoriaQuintoFormato(12, reg0, reg1, imediatoMem, mem);
+    } else if(strcmp(mine,"xor")== 0){
+        preencherMemoriaQuintoFormato(13, reg0, reg1, imediatoMem, mem);
     } else if(strcmp(mine,"ld")== 0){
-        palavra = 19;
-        palavra = (palavra << 3) | rg0;
-        palavra = (palavra << 21)| imediatoMem;
-        guardarValorParaMemoria(mem,palavra);
+        preencherMemoriaSextoFormato(14, reg0, reg1, mem);
     } else if(strcmp(mine,"st")== 0){
-        palavra = 20;
-        palavra = (palavra << 3) | rg0;
-        palavra = (palavra << 21)| imediatoMem;
-        guardarValorParaMemoria(mem,palavra);
-    } else if(strcmp(mine,"movi")== 0) {
-        palavra = 21;
-        palavra = (palavra << 3) | rg0;
-        palavra = (palavra << 21) | imediatoMem;
-        guardarValorParaMemoria(mem, palavra);
-    } else if(strcmp(mine,"addi")== 0) {
-        palavra = 22;
-        palavra = (palavra << 3) | rg0;
-        palavra = (palavra << 21) | imediatoMem;
-        guardarValorParaMemoria(mem, palavra);
-    } else if(strcmp(mine,"subi")== 0) {
-        palavra = 23;
-        palavra = (palavra << 3) | rg0;
-        palavra = (palavra << 21) | imediatoMem;
-        guardarValorParaMemoria(mem, palavra);
-    } else if(strcmp(mine,"muli")== 0) {
-        palavra = 24;
-        palavra = (palavra << 3) | rg0;
-        palavra = (palavra << 21) | imediatoMem;
-        guardarValorParaMemoria(mem, palavra);
-    } else if(strcmp(mine,"divi")== 0) {
-        palavra = 25;
-        palavra = (palavra << 3) | rg0;
-        palavra = (palavra << 21) | imediatoMem;
-        guardarValorParaMemoria(mem, palavra);
-    } else if(strcmp(mine,"lsh")== 0) {
-        palavra = 26;
-        palavra = (palavra << 3) | rg0;
-        palavra = (palavra << 21) | imediatoMem;
-        guardarValorParaMemoria(mem, palavra);
-    } else if(strcmp(mine,"rsh")== 0) {
-        palavra = 27;
-        palavra = (palavra << 3) | rg0;
-        palavra = (palavra << 21) | imediatoMem;
-        guardarValorParaMemoria(mem, palavra);
-    } else{
-        palavra  = 0;
-        guardarValorParaMemoria(mem,palavra);
+        preencherMemoriaSextoFormato(15, reg0, reg1, mem);
+    } else if(strcmp(mine,"movil")== 0){
+        preencherMemoriaSextoFormato(16, reg0, reg1, mem);
+    } else if(strcmp(mine,"movih")== 0){
+        preencherMemoriaSextoFormato(17, reg0, reg1, mem);
+    } else if(strcmp(mine,"addi")== 0){
+        preencherMemoriaSextoFormato(18, reg0, reg1, mem);
+    } else if(strcmp(mine,"subi")== 0){
+        preencherMemoriaSextoFormato(19, reg0, reg1, mem);
+    } else if(strcmp(mine,"muli")== 0){
+        preencherMemoriaSextoFormato(20, reg0, reg1, mem);
+    } else if(strcmp(mine,"divi")== 0){
+        preencherMemoriaSextoFormato(21, reg0, reg1, mem);
+    } else if(strcmp(mine,"lsh")== 0){
+        preencherMemoriaSextoFormato(22, reg0, reg1, mem);
+    } else if(strcmp(mine,"rsh")== 0){
+        preencherMemoriaSextoFormato(23, reg0, reg1, mem);
+    } else if(strcmp(mine,"je")== 0){
+        preencherMemoriaSetimoFormato(24, reg0, mem);
+    } else if(strcmp(mine,"jne")== 0){
+        preencherMemoriaSetimoFormato(25, reg0, mem);
+    } else if(strcmp(mine,"jl")== 0){
+        preencherMemoriaSetimoFormato(26, reg0, mem);
+    } else if(strcmp(mine,"jle")== 0){
+        preencherMemoriaSetimoFormato(27, reg0, mem);
+    } else if(strcmp(mine,"jg")== 0){
+        preencherMemoriaSetimoFormato(28, reg0, mem);
+    } else if(strcmp(mine,"jge")== 0){
+        preencherMemoriaSetimoFormato(29, reg0, mem);
+    } else if(strcmp(mine,"jmp")== 0){
+        preencherMemoriaSetimoFormato(30, reg0, mem);
     }
 }
 
@@ -273,8 +304,15 @@ void imprimirLogo() {
     }
 }
 
+
+void solicitaContinuar(){
+    printf("Pressione Enter para continuar (outra tecla para sair)...\n");
+    while (getchar() != '\n'); // Loop até que Enter seja pressionado
+}
+
 int main(){
     imprimirLogo();
+//    solicitaContinuar();
     lerArquivo();
     imprimirRegistradores();
     imprimirMemoria();

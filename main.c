@@ -292,6 +292,7 @@ void imprimirMemoria(){
  * Imprime no terminal uma logo feita em um arquivo 'ifg-logo.txt'
  */
 void imprimirLogo() {
+    limparTela();
     FILE *arquivo;
     char linha[90];
 
@@ -351,167 +352,231 @@ void processarArquivo(){
     }
 }
 
+/**
+ * conjunto de instruções da CPU
+ * e, l, g registragores internos: flags
+ * pc endereço da próxima instrução
+ * mar endereço de memória a lida ou escrita na memória
+ * imm operando imediato da instrução
+ * ir opcode da instrução a ser executada
+ * mbr contém a palavra a ser armazenada na memória
+ * ro0 endereço do 1º operando registrador da instrução
+ * ro1 endereço do 2º operando registrador da instrução
+ * ro2 endereço do 3º operando registrador da instrução
+ * reg[ro0], reg[ro1] , reg[ro2] registradores de propósito geral
+*/
 void ciclo() {
     mar = pc;
+
+    // byte mais significativo e deslocamento de 8 bits a esquerda;
     mbr = memoria[mar++] << 8;
+    /**
+    * próximo byte do endereço e desloca o resultado 8 bits p/ esquerda, e assim sucessivamente
+    * até chegar no último byte mais signicativo
+    * e formar o valor completo do endereço de memória
+    */
     mbr = (mbr | memoria[mar++]) << 8;
     mbr = (mbr | memoria[mar++]) << 8;
     mbr = mbr | memoria[mar++];
-    //opcode com os 5 bits mais significativos
-    ir = (mbr >> 27);
 
-    if (ir == 0 || ir == 1) {
-        if (ir == 0) { // hlt
-            printf("Programa chegou ao fim (hlt).\n\n\n\n");
-            exit(0);
-            //CPU n�o faz nada, hlt, finalizar programa
-        } else if (ir == 1){  //nop
-            //apenas incrementar o PC
+    //opcode com os 5 bits mais significativos a direita
+    ir = (mbr >> 27); /* 0000 0000 0000 0000 0000 0000 0001 1111 */
+
+    //máscara e deslocamento do registrador operando
+    ro0 = ((mbr & 0x07800000) >> 23); 	/**
+										* mbr:    1111 1111 1111 1111 1111 1111 1111 1111
+									 	* & ro0:  0000 0111 1000 0000 0000 0000 0000 0000
+										* masc:   0000 0111 1000 0000 0000 0000 0000 0000
+										* >> 23   0000 0000 0000 0000 0000 0001 1110 0000
+										*/
+    ro1 = (mbr & 0x00780000) >> 19; 	/**
+										* mbr:    1111 1111 1111 1111 1111 1111 1111 1111
+										* & ro0:  0000 0000 0111 1000 0000 0000 0000 0000
+										* masc:   0000 0000 0111 1000 0000 0000 0000 0000
+										* >> 19   0000 0000 0000 0000 0000 0001 1110 0000
+										*/
+    ro2 = (mbr & 0x00078000) >> 15;
+
+    //máscara para o imm e mar
+    /* Ambos possuem 23 bits, por isso a máscara ficou idêntica */
+    imm = (mbr & 0x007fffff);  /**
+								*  mbr:   1111 1111 1111 1111 1111 1111 1111 1111
+								*  & imm  0000 0000 0111 1111 1111 1111 1111 1111
+								*    =    0000 0000 0111 1111 1111 1111 1111 1111
+							   */
+    mar = (mbr & 0x007fffff);
+
+    // Executa a instrução
+    switch (ir) {
+        case 0: // HLT
+            // finaliza o programa
+            break;
+        case 1: // NOP
+            // apenas incrementa o pc
             pc += 4;
-        }
-    } else if (ir >= 2 && ir <= 4){
-        ro0 = ((mbr & 0x07800000) >> 23);
-        ro1 = (mbr &  0x00780000) >> 19;
-        if (ir == 2) { //not
-            ro0 = ((mbr & 0x07800000) >> 23);
+            return;
+        case 2: // NOT
+            // negar o registrador regX;
             reg[ro0] = !reg[ro0];
             pc += 4;
-        } else if (ir == 3) { //movr
+            break;
+        case 3: // MOVR
+            // movimentar regX p/ regY
             reg[ro0] = reg[ro1];
             pc += 4;
-        } else if (ir == 4) { //cmp
-            if (reg[ro0] == reg[ro1]){
+            break;
+        case 4: // CMP
+            //comparar palavra no regX c/ palavra no regY
+            if (reg[ro0] == reg[ro1]) {
                 e = 0x01;
-                pc += 4;
             } else {
                 e = 0x00;
-                pc += 4;
             }
-            if (reg[ro0] < reg[ro1]){
+            if (reg[ro0] < reg[ro1]) {
                 l = 0x01;
-                pc += 4;
             } else {
                 l = 0x00;
-                pc += 4;
             }
-            if (reg[ro0] > reg[ro1]){
+            if (reg[ro0] > reg[ro1]) {
                 g = 0x01;
-                pc += 4;
             } else {
                 g = 0x00;
-                pc += 4;
             }
-        }
-    }
+            pc += 4;
+            break;
 
-    //operacoes logicas e aritmeticas
-    else if ( ir >= 7 & ir <= 13) {
-        ro0 = (mbr &  0x07800000) >> 23;
-        ro1 = (mbr &  0x00780000) >> 19;
-        ro2 = (mbr &  0x00078000) >> 15;
-        if (ir == 7){ //add
+            // Operações aritméticas e lógicas
+        case 7: // ADD
             reg[ro0] = reg[ro1] + reg[ro2];
-            pc+=4;
-        }
-        else if (ir == 8){ //sub
+            pc += 4;
+            break;
+        case 8: // SUB
             reg[ro0] = reg[ro1] - reg[ro2];
-            pc+=4;
-        }
-        else if (ir == 9){ //mul
+            pc += 4;
+            break;
+        case 9: // MUL
             reg[ro0] = reg[ro1] * reg[ro2];
-            pc+=4;
-        }
-        else if (ir == 10){ //div
+            pc += 4;
+            break;
+        case 10: // DIV
             reg[ro0] = reg[ro1] / reg[ro2];
-            pc+=4;
-        }
-        else if (ir == 11){ //and
+            pc += 4;
+            break;
+        case 11: // AND
             reg[ro0] = reg[ro1] & reg[ro2];
-            pc+=4;
-        }
-        else if (ir == 12){ //or
+            pc += 4;
+            break;
+        case 12: // OR
             reg[ro0] = reg[ro1] | reg[ro2];
-            pc+=4;
-        }
-        else if (ir == 13){ //xor
+            pc += 4;
+            break;
+        case 13: // XOR
             reg[ro0] = reg[ro1] ^ reg[ro2];
-            pc+=4;
-        }
-    }
-
-    else if (ir == 14 || ir == 15) {
-        ro0 = (mbr &  0x07800000) >> 23;
-        //ro1 = (mbr &  0x780000) >> 19;
-        mar = (mbr & 0x007fffff);
-        if (ir == 14) { //ld
-            mbr = memoria[mar++];
+            pc += 4;
+            break;
+        case 14: // LD
+            // carregar o regX uma palavra de 32 bits que inicia no endereço Y
+            // O endereço de memória é obtido pelo mar
+            mar = (mbr & 0x007fffff);
+            mbr = memoria[mar++] << 8;
             mbr = (mbr << 8) | memoria[mar++];
             mbr = (mbr << 8) | memoria[mar++];
             mbr = (mbr << 8) | memoria[mar++];
             reg[ro0] = mbr;
             pc += 4;
-        } else if (ir == 15) { //st
+            break;
+        case 15: // ST
+            /**
+             * armazenar uma palavra de 32 bits que começa a partir
+             * do endereço de memória Y o conteúdo do regX.
+            */
+            mar = (mbr & 0x007fffff);
             mbr = reg[ro0];
+
+            /**
+            * divide o conteúdo do registrador mbr em bytes individuais e os
+            * armazena sequencialmente na memória.
+            */
             memoria[mar++] = (mbr >> 24);
             memoria[mar++] = (mbr >> 16);
             memoria[mar++] = (mbr >> 8);
             memoria[mar++] = mbr;
             pc += 4;
-        }
-    }
-    else if (ir >= 18 && ir <= 23) {
-        ro0 = (mbr &  0x07800000) >> 23;
-        imm = (mbr & 0x007fffff);
-        if (ir == 18) { //addi
+            break;
+
+            // operações com valor imediato
+        case 18: // ADDI
             reg[ro0] = (reg[ro0] + imm);
             pc += 4;
-        } else if (ir == 19) { //subi
+            break;
+        case 19: // SUBI
             reg[ro0] = (reg[ro0] - imm);
             pc += 4;
-        } else if (ir == 20) { //muli
+            break;
+        case 20: // MULI
             reg[ro0] = (reg[ro0] * imm);
             pc += 4;
-        } else if (ir == 21) { //divi
+            break;
+        case 21: // DIVI
             reg[ro0] = (reg[ro0] / imm);
             pc += 4;
-        } else if (ir == 22) { //lsh
+            break;
+        case 22: // LSH
             reg[ro0] = (reg[ro0] << imm);
             pc += 4;
-        } else if (ir == 23) { //rsh
+            break;
+        case 23: // RSH
             reg[ro0] = (reg[ro0] >> imm);
             pc += 4;
-        }
-    }
-    else if (ir >= 24 && ir <= 30){
-        mar = (mbr & 0x007fffff);
+            break;
 
-        if (ir == 24) { //je
+            // instruções de jump
+        case 24: // JE
             if (e == 0x01) {
                 pc = mar;
+            } else {
+                pc += 4;
             }
-        } else if (ir == 25) { //jne
+            break;
+        case 25: // JNE
             if (e == 0x00) {
                 pc = mar;
+            } else {
+                pc += 4;
             }
-        } else if (ir == 26) { //jl
+            break;
+        case 26: // JL
             if (l == 0x01) {
                 pc = mar;
+            } else {
+                pc += 4;
             }
-        } else if (ir == 27) { //jle
+            break;
+        case 27: // JLE
             if (e == 0x01 || l == 0x01) {
                 pc = mar;
+            } else {
+                pc += 4;
             }
-        } else if (ir == 28) { //jg
+            break;
+        case 28: // JG
+            mar = (mbr & 0x007fffff);
             if (g == 0x01) {
                 pc = mar;
+            } else {
+                pc += 4;
             }
-        } else if (ir == 29) { //jge
+            break;
+        case 29: // JGE
             if (e == 0x01 || g == 0x01) {
                 pc = mar;
+            } else {
+                pc += 4;
             }
-        } else if (ir == 30) { //jmp
+            break;
+        case 30: // JMP
             pc = mar;
-        }
+            break;
     }
 }
 
@@ -525,4 +590,3 @@ int main(){
         solicitaContinuar();
     }
 }
-

@@ -140,14 +140,16 @@ void preencherMemoriaSetimoFormato(unsigned int opcode, unsigned int posMem, uns
     guardarValorParaMemoria(posicao, valor);//guarda na memoria a palavra 32 bits
 }
 
-void colocarInstru(int mem){
-    unsigned char *ponteiro, reg0, mine[8]; // aux recebe reg0
-    unsigned int count = 0, reg1, imediatoMem;
+void processarInstrucao(int mem){
+    unsigned char *ponteiro, instrucao[8];
+    unsigned int count = 0,reg0, reg1, imediatoMem;
 
     ponteiro = strtok(pt," ,");//divide a palavra de instrucao em pedacos divididos por , ou espaco
+
+//    for (ponteiro = strtok(pt, " ,"); ponteiro != NULL; ponteiro = strtok(NULL, " ,")) { }
     while(ponteiro){
         if(count == 0){
-            strcpy(mine,ponteiro);
+            strcpy(instrucao, ponteiro);
         }
         if (count== 1){
             reg0 = (int)strtol(ponteiro, NULL, 16);
@@ -161,74 +163,77 @@ void colocarInstru(int mem){
         ponteiro = strtok(NULL," ,r");
         count++;
     }
-    if(strstr(mine,"nop") != NULL) {
+
+    if(strstr(instrucao, "nop") != NULL) {
         preencherMemoriaPrimeiroFormato(1, mem);
     }
-    else if(strcmp(mine,"not") == 0) {
+    else if(strcmp(instrucao, "not") == 0) {
         preencherMemoriaSegundoFormato(2, reg0, mem);
-    } else if(strcmp(mine,"movr")== 0){
+    } else if(strcmp(instrucao, "movr") == 0){
         preencherMemoriaTerceiroFormato(3, reg0, reg1, mem);
-    } else if(strcmp(mine,"cmp")== 0){
+    } else if(strcmp(instrucao, "cmp") == 0){
         preencherMemoriaTerceiroFormato(4, reg0, reg1, mem);
-    } else if(strcmp(mine,"ldbo")== 0){
+    } else if(strcmp(instrucao, "ldbo") == 0){
         preencherMemoriaQuartoFormato(5, reg0, reg1, imediatoMem, mem);
-    } else if(strcmp(mine,"stbo")== 0){
+    } else if(strcmp(instrucao, "stbo") == 0){
         preencherMemoriaQuartoFormato(6, reg0, reg1, imediatoMem, mem);
-    } else if(strcmp(mine,"add")== 0){
+    } else if(strcmp(instrucao, "add") == 0){
         preencherMemoriaQuintoFormato(7, reg0, reg1, imediatoMem, mem);
-    } else if(strcmp(mine,"sub")== 0){
+    } else if(strcmp(instrucao, "sub") == 0){
         preencherMemoriaQuintoFormato(8, reg0, reg1, imediatoMem, mem);
-    } else if(strcmp(mine,"mul")== 0){
+    } else if(strcmp(instrucao, "mul") == 0){
         preencherMemoriaQuintoFormato(9, reg0, reg1, imediatoMem, mem);
-    } else if(strcmp(mine,"div")== 0){
+    } else if(strcmp(instrucao, "div") == 0){
         preencherMemoriaQuintoFormato(10, reg0, reg1, imediatoMem, mem);
-    } else if(strcmp(mine,"and")== 0){
+    } else if(strcmp(instrucao, "and") == 0){
         preencherMemoriaQuintoFormato(11, reg0, reg1, imediatoMem, mem);
-    } else if(strcmp(mine,"or")== 0){
+    } else if(strcmp(instrucao, "or") == 0){
         preencherMemoriaQuintoFormato(12, reg0, reg1, imediatoMem, mem);
-    } else if(strcmp(mine,"xor")== 0){
+    } else if(strcmp(instrucao, "xor") == 0){
         preencherMemoriaQuintoFormato(13, reg0, reg1, imediatoMem, mem);
-    } else if(strcmp(mine,"ld")== 0){
+    } else if(strcmp(instrucao, "ld") == 0){
         preencherMemoriaSextoFormato(14, reg0, reg1, mem);
-    } else if(strcmp(mine,"st")== 0){
+    } else if(strcmp(instrucao, "st") == 0){
         preencherMemoriaSextoFormato(15, reg0, reg1, mem);
-    } else if(strcmp(mine,"movil")== 0){
+    } else if(strcmp(instrucao, "movil") == 0){
         preencherMemoriaSextoFormato(16, reg0, reg1, mem);
-    } else if(strcmp(mine,"movih")== 0){
+    } else if(strcmp(instrucao, "movih") == 0){
         preencherMemoriaSextoFormato(17, reg0, reg1, mem);
-    } else if(strcmp(mine,"addi")== 0){
+    } else if(strcmp(instrucao, "addi") == 0){
         preencherMemoriaSextoFormato(18, reg0, reg1, mem);
-    } else if(strcmp(mine,"subi")== 0){
+    } else if(strcmp(instrucao, "subi") == 0){
         preencherMemoriaSextoFormato(19, reg0, reg1, mem);
-    } else if(strcmp(mine,"muli")== 0){
+    } else if(strcmp(instrucao, "muli") == 0){
         preencherMemoriaSextoFormato(20, reg0, reg1, mem);
-    } else if(strcmp(mine,"divi")== 0){
+    } else if(strcmp(instrucao, "divi") == 0){
         preencherMemoriaSextoFormato(21, reg0, reg1, mem);
-    } else if(strcmp(mine,"lsh")== 0){
+    } else if(strcmp(instrucao, "lsh") == 0){
         preencherMemoriaSextoFormato(22, reg0, reg1, mem);
-    } else if(strcmp(mine,"rsh")== 0){
+    } else if(strcmp(instrucao, "rsh") == 0){
         preencherMemoriaSextoFormato(23, reg0, reg1, mem);
-    } else if(strcmp(mine,"je")== 0){
+    } else if(strcmp(instrucao, "je") == 0){
         preencherMemoriaSetimoFormato(24, reg0, mem);
-    } else if(strcmp(mine,"jne")== 0){
+    } else if(strcmp(instrucao, "jne") == 0){
         preencherMemoriaSetimoFormato(25, reg0, mem);
-    } else if(strcmp(mine,"jl")== 0){
+    } else if(strcmp(instrucao, "jl") == 0){
         preencherMemoriaSetimoFormato(26, reg0, mem);
-    } else if(strcmp(mine,"jle")== 0){
+    } else if(strcmp(instrucao, "jle") == 0){
         preencherMemoriaSetimoFormato(27, reg0, mem);
-    } else if(strcmp(mine,"jg")== 0){
+    } else if(strcmp(instrucao, "jg") == 0){
         preencherMemoriaSetimoFormato(28, reg0, mem);
-    } else if(strcmp(mine,"jge")== 0){
+    } else if(strcmp(instrucao, "jge") == 0){
         preencherMemoriaSetimoFormato(29, reg0, mem);
-    } else if(strcmp(mine,"jmp")== 0){
+    } else if(strcmp(instrucao, "jmp") == 0){
         preencherMemoriaSetimoFormato(30, reg0, mem);
     }
 }
 
 /**
- * Busca pelo arquivo instrucoes.txt no mesmo diretorio do executavel e
+ * Busca pelo arquivo instrucoes.txt no mesmo diretorio do executavel e processa o arquivo
+ * inserindo a instrução na memoria caso seja uma linha de instrução ou guardando o valor na memoria
+ * caso seja uma palavra de dado
  */
-void lerArquivo(){
+void processarArquivo(){
     unsigned int index;
     unsigned int valor;
     FILE *arq;
@@ -247,7 +252,7 @@ void lerArquivo(){
                     valor = (unsigned int)strtol(pt,NULL,16);//converte para inteiro o valor em hexadecimal contido terceira parte da linha de comando caso seja linha de dado
                     guardarValorParaMemoria(index, valor);
                 }else{// se esse comando for do tipo 'i' deve armazenar a instrucao contido no ponteiro 'pt' na posicao de memoria 'index'
-                    colocarInstru(index);
+                    processarInstrucao(index);
                 }
             }
 
@@ -260,6 +265,26 @@ void lerArquivo(){
     if (NULL == arq)
         printf("Arquivo instrucoes.txt não encontrado.\n");
     fclose(arq);
+}
+
+/**
+ * limpa a tela do terminal e move cursor para o inicio
+ */
+void limparTela() {
+    printf("\033[2J\033[H"); // Limpa a tela e move o cursor para o início
+}
+
+/**
+ *
+ */
+void solicitaContinuar(){
+    printf("\n\nDigite Enter para continuar (outra tecla para sair)...\n");
+    int c = getchar();
+//    limparTela();
+    if (c != '\n') { // Se não for outro Enter, cancela a execução
+        printf("Programa encerrado.\n");
+        exit(0);
+    }
 }
 
 void imprimirRegistradores(){
@@ -302,20 +327,17 @@ void imprimirLogo() {
         printf("\n\n\n");
         fclose(arquivo);
     }
-}
 
-
-void solicitaContinuar(){
-    printf("Pressione Enter para continuar (outra tecla para sair)...\n");
-    while (getchar() != '\n'); // Loop até que Enter seja pressionado
+    solicitaContinuar();
 }
 
 int main(){
     imprimirLogo();
-//    solicitaContinuar();
-    lerArquivo();
-    imprimirRegistradores();
-    imprimirMemoria();
-    return 0;
+    while(1){
+        processarArquivo();
+        imprimirRegistradores();
+        imprimirMemoria();
+        solicitaContinuar();
+    }
 }
 

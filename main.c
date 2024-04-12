@@ -85,10 +85,10 @@ void buscaDecodificaExecuta() {
 		ro1 = (mbr &  0x00780000) >> 19;
         mar = (mbr & 0x007fffff) + reg[ro1]; // Calcula o endereco de memoria baseado em M[Z] + reg[ro1]
         mbr = reg[ro0]; // Armazena o valor do registrador ro0 na memoria no endereco calculado
-        memoria[mar++] = (mbr >> 24) && 0xff;
-        memoria[mar++] = (mbr >> 16) && 0xff;
-        memoria[mar++] = (mbr >> 8) && 0xff;
-        memoria[mar++] = mbr && 0xff;
+        memoria[mar++] = (mbr >> 24) & 0xff;
+        memoria[mar++] = (mbr >> 16) & 0xff;
+        memoria[mar++] = (mbr >> 8) & 0xff;
+        memoria[mar++] = mbr & 0xff;
 
         pc += 4;
 	} else if ( ir >= 7 & ir <= 13) { //operacoes logicas e aritmeticas
@@ -140,10 +140,10 @@ void buscaDecodificaExecuta() {
 			pc += 4;
 		} else if (ir == 15) { //st
 			mbr = reg[ro0];
-			memoria[mar++] = (mbr >> 24) && 0xff;
-        	memoria[mar++] = (mbr >> 16) && 0xff;
-        	memoria[mar++] = (mbr >> 8) && 0xff;
-        	memoria[mar++] = mbr && 0xff;
+			memoria[mar++] = (mbr >> 24) & 0xff;
+        	memoria[mar++] = (mbr >> 16) & 0xff;
+        	memoria[mar++] = (mbr >> 8) & 0xff;
+        	memoria[mar++] = mbr & 0xff;
 			pc += 4;
 		}
 	} else if (ir == 16) { // movil
@@ -476,7 +476,7 @@ void solicitaContinuar(){
     int c = getchar();
     limparTela();
     if (c != '\n') { // Se nao for outro Enter, cancela a execucao
-        printf("Programa encerrado.\n");
+        printf("Programa encerrado pelo usuario.\n");
         exit(0);
     }
 }
@@ -510,19 +510,11 @@ void imprimirMemoria(){
 }
 
 /**
- * Imprime no terminal uma logo feita em um arquivo 'ifg-logo.txt'
+ * Imprime no terminal uma logo feita em codigo ANSI
  */
 void imprimirLogo() {
-    FILE *arquivo;
-    char linha[90];
-
-    if ((arquivo = fopen("ifg-logo.txt", "r")) != NULL) {
-        while (fgets(linha, 90, arquivo) != NULL) {
-            printf("%s", linha);
-        }
-        printf("\n\n\n");
-        fclose(arquivo);
-    }
+    printf("\n                                \033[33m \\   _____________   /\n                                \\  -/             \\-  /\n                                  --|             |--\n                                    | Logical CPU |\n                                  __|             |__\n                                 /  -\\____________/-  \\\n                                   /                \\\n");
+    printf("\n                                  \033[31m 100001  \033[32m 1010101  10101011\n                                \033[31m 001111001 \033[32m 1     0  1      1\n                                \033[31m 111000111 \033[32m 0     0  0      1\n                                  \033[31m 11111   \033[32m 1101011  11010101\n\n                                \033[32m 1010101  10101011\n                                 1     0  1      1\n                                 0     0  0      1\n                                 1101011  11010101 \n\n                                 1010101  10101011  01010101\n                                 1     0  1      1  1      1\n                                 0     0  0      1  0      1\n                                 1101011  11010101  11010101\n                \n                                 1010101  10101011\n                                 1     0  1      1\n                                 0     0  0      1\n                                 1101011  11010101\n\n\n            \033[0m 1  00     0   00000  001001  0  001000  0   1  001000  1000\n             0  0  1   0  100       0     0    1     1   0    0    0    0\n             0  0   0  0     100    1     0    1     0   0    0    0    0\n             0  0    111  11100     0     1    0      101     1     1000\n\n                     0000  0000  0001   0000 00000   0     0\n                     0     0     0   0  0    0   0  1 0    0\n                     0000  000   0    0 000  00000  0  1   1 \n                     0     0     0   0  0    0  0  110001  1 \n                     0     0001  0000   0000 0   0 0     0 0000");
 
     solicitaContinuar();
 }

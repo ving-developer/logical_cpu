@@ -48,27 +48,23 @@ void buscaDecodificaExecuta() {
 		else if (ir == 4) { //cmp
 			if (reg[ro0] == reg[ro1]){//comparar palavra no regX c/ palavra no regY
 				e = 0x01;
-				pc += 4;
 			} else {
 				e = 0x00;
-				pc += 4;
 			}
 
 			if (reg[ro0] < reg[ro1]){
 				l = 0x01;
-				pc += 4;
 			} else {
 				l = 0x00;
-				pc += 4;
 			}
 
 			if (reg[ro0] > reg[ro1]){
 				g = 0x01;
-				pc += 4;
 			} else {
 				g = 0x00;
-				pc += 4;
 			}
+
+            pc += 4;
 		}
 	} else if ( ir == 5) { // LDBO
 		ro0 = ((mbr & 0x07800000) >> 23);
@@ -189,27 +185,39 @@ void buscaDecodificaExecuta() {
 		if (ir == 24) { //je
 			if (e == 0x01) {
 				pc = mar;
-			}
+			} else {
+                pc += 4;
+            }
 		} else if (ir == 25) { //jne
 			if (e == 0x00) {
 				pc = mar;
-			}
+			} else {
+                pc += 4;
+            }
 		} else if (ir == 26) { //jl
  			if (l == 0x01) {
 				pc = mar;
-			}
+			} else {
+                pc += 4;
+             }
 		} else if (ir == 27) { //jle
 			if (e == 0x01 || l == 0x01) {
 				pc = mar;
-			}
+			}else{
+                pc += 4;
+            }
 		} else if (ir == 28) { //jg
 			if (g == 0x01) {
 				pc = mar;
-			}
+			} else {
+                pc += 4;
+            }
 		} else if (ir == 29) { //jge
 			if (e == 0x01 || g == 0x01) {
 				pc = mar;
-			}
+			} else {
+                pc += 4;
+            }
 		} else if (ir == 30) { //jmp
 			pc = mar;
 		}
@@ -484,19 +492,19 @@ void solicitaContinuar(){
 
 void imprimirRegistradores(){
     printf("                          Registradores                          \n");
-    printf("----------+----------+----------+----------+-------------------+\n");
-    printf(" PC: %x    | MBR: %08x   | MAR: %x   | IMM: %x   | IR %x \n", pc, mbr, mar, imm, ir);
-    printf("----------+----------+----------+----------+--------+----------+\n");
-    printf(" E: %x     | L: %x     | G: %x     | RO0: %x   | RO1: %x |  RO2: %x\n", e, l, g, ro0, ro1, ro2);
-    printf("----------+----------+----------+------------------------------+\n");
-    printf(" REG01: %x | REG02: %x | REG03: %x | REG04: %x  \n", reg[0], reg[1], reg[2], reg[3]);
-    printf("----------+----------+----------+------------------------------+\n");
-    printf(" REG05: %x | REG06: %x | REG07: %x | REG08: %x \n", reg[4], reg[5], reg[6], reg[7]);
-    printf("----------+----------+----------+------------------------------+\n");
-    printf(" REG09: %x | REG10: %x | REG11: %x | REG12: %x  \n", reg[8], reg[9], reg[10], reg[11]);
-    printf("----------+----------+----------+------------------------------+\n");
-    printf(" REG13: %x | REG14: %x | REG15: %x | REG16: %x \n", reg[12], reg[13], reg[14], reg[15]);
-    printf("----------+----------+----------+------------------------------+\n");
+    printf("-----------+----------+---------------+---------------+-----------------+\n");
+    printf("| PC: %02x   | IR %02x    | MAR: %08x | MBR: %08x | IMM: %08x   | \n", pc, ir, mar, mbr, imm);
+    printf("-----------+----------+---------------+---------------------------------+\n");
+    printf("| E: %x     | L: %x     | G: %x          | RO0: %02x   | RO1: %02x |  RO2: %02x  |\n", e, l, g, ro0, ro1, ro2);
+    printf("------------------------------------------------------------------------+\n");
+    printf("| REG00: %08x | REG01: %08x | REG02: %08x | REG03: %08x |\n", reg[0], reg[1], reg[2], reg[3]);
+    printf("------------------+-----------------+-----------------+-----------------+\n");
+    printf("| REG04: %08x | REG05: %08x | REG06: %08x | REG07: %08x |\n", reg[4], reg[5], reg[6], reg[7]);
+    printf("------------------+-----------------+-----------------+-----------------+\n");
+    printf("| REG08: %08x | REG09: %08x | REG10: %08x | REG11: %08x |\n", reg[8], reg[9], reg[10], reg[11]);
+    printf("------------------+-----------------+-----------------+-----------------+\n");
+    printf("| REG12: %08x | REG13: %08x | REG14: %08x | REG15: %08x |\n", reg[12], reg[13], reg[14], reg[15]);
+    printf("------------------+-----------------+-----------------+-----------------+\n");
 }
 
 void imprimirMemoria(){
@@ -514,7 +522,7 @@ void imprimirMemoria(){
  * Imprime no terminal uma logo feita em codigo ANSI
  */
 void imprimirLogo() {
-    printf("\n                                \033[33m \\   _____________   /\n                                \\  -/             \\-  /\n                                  --|             |--\n                                    | Logical CPU |\n                                  __|             |__\n                                 /  -\\____________/-  \\\n                                   /                \\\n");
+    printf("\e[3mAlunos: Henrique Barros e Paulo David \e[0m \n");
     printf("\n                                  \033[31m 100001  \033[32m 1010101  10101011\n                                \033[31m 001111001 \033[32m 1     0  1      1\n                                \033[31m 111000111 \033[32m 0     0  0      1\n                                  \033[31m 11111   \033[32m 1101011  11010101\n\n                                \033[32m 1010101  10101011\n                                 1     0  1      1\n                                 0     0  0      1\n                                 1101011  11010101 \n\n                                 1010101  10101011  01010101\n                                 1     0  1      1  1      1\n                                 0     0  0      1  0      1\n                                 1101011  11010101  11010101\n                \n                                 1010101  10101011\n                                 1     0  1      1\n                                 0     0  0      1\n                                 1101011  11010101\n\n\n            \033[0m 1  00     0   00000  001001  0  001000  0   1  001000  1000\n             0  0  1   0  100       0     0    1     1   0    0    0    0\n             0  0   0  0     100    1     0    1     0   0    0    0    0\n             0  0    111  11100     0     1    0      101     1     1000\n\n                     0000  0000  0001   0000 00000   0     0\n                     0     0     0   0  0    0   0  1 0    0\n                     0000  000   0    0 000  00000  0  1   1 \n                     0     0     0   0  0    0  0  110001  1 \n                     0     0001  0000   0000 0   0 0     0 0000");
 
     solicitaContinuar();

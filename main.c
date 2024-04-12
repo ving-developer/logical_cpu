@@ -30,6 +30,7 @@ void buscaDecodificaExecuta() {
 	ir = (mbr >> 27);
 
 	if (ir == 0) { // hlt
+        printf("Programa encerrado pelo comando 'hlt' no arquivo de instruções.\n");
 		exit(0);//CPU nao faz nada, hlt, finalizar programa
 	} else if (ir == 1) { //nop
 		pc += 4;//apenas incrementar o PC
